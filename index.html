@@ -1,22 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GLB Viewer</title>
-  
-  <!-- Include model-viewer library -->
-  <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.1.0/dist/model-viewer.js"></script>
-  
-  <style>
-    canvas { width: 100%; height: 100vh; display: block; }
-    #controls { position: absolute; top: 10px; left: 10px; background: white; padding: 10px; }
-  </style>
-</head>
-<body>
-
-  <!-- Model Viewer with controls for interaction -->
-  <model-viewer src="model.glb" alt="3D model" auto-rotate camera-controls background-color="#FFFFFF" style="width: 100%; height: 100vh;"></model-viewer>
-  
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <title>GLB Viewer</title>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <style>
+      model-viewer { width: 100%; height: 100vh; }
+    </style>
+  </head>
+  <body>
+    <model-viewer src="model.glb" auto-rotate camera-controls></model-viewer>
+  </body>
 </html>
