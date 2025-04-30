@@ -1,116 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GLB Viewer</title>
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-        }
-
-        canvas {
-            width: 100%;
-            height: 100vh;
-            display: block;
-        }
-
-        #controls {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: white;
-            padding: 10px;
-            z-index: 10;
-            opacity: 0.7;
-        }
-
-        #controls button {
-            margin: 5px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GLB Viewer</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { width: 100%; height: 100vh; display: block; }
+    #controls { position: absolute; top: 10px; left: 10px; background: white; padding: 10px; z-index: 10; opacity: 0.7; }
+    #controls button { margin: 5px; }
+  </style>
 </head>
-
 <body>
-    <div id="controls">
-        <button id="toggleButton">Toggle Part Visibility</button>
-    </div>
 
-    <script type="module">
-        import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js';
-        import { GLTFLoader } from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/loaders/GLTFLoader.js';
-        import { OrbitControls } from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/controls/OrbitControls.js';
+  <div id="controls">
+    <button id="toggleButton">Toggle Part Visibility</button>
+  </div>
 
-        let scene, camera, renderer, controls;
-        let model;
-        const partVisibility = {};
+  <script type="module">
+    import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js';
+    import { GLTFLoader } from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/controls/OrbitControls.js';
 
-        // Initialize the scene, camera, renderer, and controls
-        function init() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            document.body.appendChild(renderer.domElement);
+    let scene, camera, renderer, controls;
+    let model;
+    const partVisibility = {};
 
-            // Add orbit controls
-            controls = new OrbitControls(camera, renderer.domElement);
+    // Initialize the scene, camera, renderer, and controls
+    function init() {
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
 
-            // Load the GLB model
-            const loader = new GLTFLoader();
-            loader.load('model.glb', function (gltf) {
-                model = gltf.scene;
-                scene.add(model);
-                camera.position.z = 5;
-                animate();
-            });
+      // Add orbit controls
+      controls = new OrbitControls(camera, renderer.domElement);
 
-            // Window resize listener
-            window.addEventListener('resize', onWindowResize, false);
+      // Load the GLB model
+      const loader = new GLTFLoader();
+      loader.load('model.glb', function (gltf) {
+        model = gltf.scene;
+        scene.add(model);
+        camera.position.z = 5;
+        animate();
+      });
 
-            // Toggle button functionality
-            document.getElementById('toggleButton').addEventListener('click', toggleVisibility);
+      // Window resize listener
+      window.addEventListener('resize', onWindowResize, false);
+
+      // Toggle button functionality
+      document.getElementById('toggleButton').addEventListener('click', toggleVisibility);
+    }
+
+    // Handle window resize
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    // Animation loop
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    // Toggle part visibility
+    function toggleVisibility() {
+      if (!model) return;
+
+      model.traverse(function (child) {
+        if (child.isMesh) {
+          const partName = child.name;
+
+          // If part visibility is not set yet, default to visible
+          if (!(partName in partVisibility)) {
+            partVisibility[partName] = true;
+          }
+
+          // Toggle visibility
+          partVisibility[partName] = !partVisibility[partName];
+          child.visible = partVisibility[partName];
         }
+      });
+    }
 
-        // Handle window resize
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
+    // Initialize the scene
+    init();
+  </script>
 
-        // Animation loop
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        }
-
-        // Toggle part visibility
-        function toggleVisibility() {
-            if (!model) return;
-
-            model.traverse(function (child) {
-                if (child.isMesh) {
-                    const partName = child.name;
-
-                    // If part visibility is not set yet, default to visible
-                    if (!(partName in partVisibility)) {
-                        partVisibility[partName] = true;
-                    }
-
-                    // Toggle visibility
-                    partVisibility[partName] = !partVisibility[partName];
-                    child.visible = partVisibility[partName];
-                }
-            });
-        }
-
-        // Initialize the scene
-        init();
-    </script>
 </body>
-
 </html>
