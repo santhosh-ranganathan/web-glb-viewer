@@ -2,95 +2,51 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GLB Viewer</title>
   <style>
-    body { margin: 0; overflow: hidden; }
+    body { margin: 0; }
     canvas { width: 100%; height: 100vh; display: block; }
-    #controls { position: absolute; top: 10px; left: 10px; background: white; padding: 10px; z-index: 10; opacity: 0.7; }
-    #controls button { margin: 5px; }
   </style>
 </head>
 <body>
-
-  <div id="controls">
-    <button id="toggleButton">Toggle Part Visibility</button>
-  </div>
-
   <script type="module">
-    // Use the 'js/' folder relative path for imports
-    import * as THREE from './js/three.module.js';  // Relative path for three.js
-    import { GLTFLoader } from './js/GLTFLoader.js';  // Relative path for GLTFLoader
-    import { OrbitControls } from './js/OrbitControls.js';  // Relative path for OrbitControls
+    import * as THREE from './js/three.module.js'; // Load Three.js
+    import { GLTFLoader } from './js/GLTFLoader.js'; // Load GLTFLoader
+    import { OrbitControls } from './js/OrbitControls.js'; // Load OrbitControls
 
-    let scene, camera, renderer, controls;
-    let model;
-    const partVisibility = {};
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-    // Initialize the scene, camera, renderer, and controls
-    function init() {
-      scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-      renderer = new THREE.WebGLRenderer();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      document.body.appendChild(renderer.domElement);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
 
-      // Add orbit controls
-      controls = new OrbitControls(camera, renderer.domElement);
+    const light = new THREE.HemisphereLight(0xffffff, 0x444444);
+    light.position.set(0, 1, 0);
+    scene.add(light);
 
-      // Load the GLB model
-      const loader = new GLTFLoader();
-      loader.load('model.glb', function (gltf) {
-        model = gltf.scene;
-        scene.add(model);
-        camera.position.z = 5;
-        animate();
-      });
+    const loader = new GLTFLoader();
+    loader.load('./model.glb', function (gltf) {
+      scene.add(gltf.scene);
+      camera.position.set(0, 1, 3);
+    }, undefined, function (error) {
+      console.error('Error loading model:', error);
+    });
 
-      // Window resize listener
-      window.addEventListener('resize', onWindowResize, false);
-
-      // Toggle button functionality
-      document.getElementById('toggleButton').addEventListener('click', toggleVisibility);
-    }
-
-    // Handle window resize
-    function onWindowResize() {
+    window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
-    }
+    });
 
-    // Animation loop
     function animate() {
       requestAnimationFrame(animate);
       controls.update();
       renderer.render(scene, camera);
     }
-
-    // Toggle part visibility
-    function toggleVisibility() {
-      if (!model) return;
-
-      model.traverse(function (child) {
-        if (child.isMesh) {
-          const partName = child.name;
-
-          // If part visibility is not set yet, default to visible
-          if (!(partName in partVisibility)) {
-            partVisibility[partName] = true;
-          }
-
-          // Toggle visibility
-          partVisibility[partName] = !partVisibility[partName];
-          child.visible = partVisibility[partName];
-        }
-      });
-    }
-
-    // Initialize the scene
-    init();
+    animate();
   </script>
-
 </body>
 </html>
